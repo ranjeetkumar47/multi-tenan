@@ -5,6 +5,8 @@ export const config = {
   matcher: ['/((?!api/|_next/|_static/|_vercel|[\\w-]+\\.\\w+).*)']
 }
 
+const baseUrl = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+// Export default function (Next.js expects this)
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone()
   const hostname = req.headers.get('host') || ''
@@ -18,29 +20,28 @@ export default async function middleware(req: NextRequest) {
   // Extract potential subdomain from the hostname
   const subdomain = hostname.split('.')[0]
 
-  // Fetch subdomains dynamically from the API
-  let subdomains: { subdomain: string }[] = []
+  let subdomains: string[] = []
   try {
-    const response = await fetch('http://localhost:3000/api/getSubdomain') // Update with the actual API URL
+    const response = await fetch(`${baseUrl}/api/getSubdomain`, { method: 'GET' })
     if (response.ok) {
       const data = await response.json()
-      subdomains = data.names.map((name: string) => ({ subdomain: name }))
+      subdomains = data.subdomains
+    } else {
+      console.error('Failed to fetch subdomains:', await response.text())
+      return new Response('Internal Server Error', { status: 500 })
     }
   } catch (error) {
-    console.error('Failed to fetch subdomains:', error)
+    console.error('Error fetching subdomains:', error)
     return new Response('Internal Server Error', { status: 500 })
   }
 
-  // If the domain is allowed and there is no subdomain, proceed with the request
-  if (isAllowedDomain && !subdomains.some((d) => d.subdomain === subdomain)) {
+  // If the domain is allowed and the subdomain is not in the fetched list, proceed with the request
+  if (isAllowedDomain && !subdomains.includes(subdomain)) {
     return NextResponse.next()
   }
 
-  // Find subdomain data in the fetched subdomains list
-  const subdomainData = subdomains.find((d) => d.subdomain === subdomain)
-
-  if (subdomainData) {
-    // Rewrite the URL to a dynamic route based on the subdomain
+  // If the subdomain exists in the fetched list, rewrite to a dynamic route
+  if (subdomains.includes(subdomain)) {
     return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
   }
 
