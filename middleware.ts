@@ -6,18 +6,13 @@ export const config = {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_ROOT_DOMAIN
-// Export default function (Next.js expects this)
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone()
   const hostname = req.headers.get('host') || ''
 
-  // Allowed domains (local development and production domains)
-  const allowedDomains = ['localhost:3001', 'ranjeet.dev']
+  const allowedDomains = ['localhost:3000', 'ranjeet.dev']
 
-  // Check if the current hostname is in the allowed domains
   const isAllowedDomain = allowedDomains.some((domain) => hostname.includes(domain))
-
-  // Extract potential subdomain from the hostname
   const subdomain = hostname.split('.')[0]
 
   let subdomains: string[] = []
@@ -35,7 +30,6 @@ export default async function middleware(req: NextRequest) {
     return new Response('Internal Server Error', { status: 500 })
   }
 
-  // If the domain is allowed and the subdomain is not in the fetched list, proceed with the request
   if (isAllowedDomain && !subdomains.includes(subdomain)) {
     return NextResponse.next()
   }

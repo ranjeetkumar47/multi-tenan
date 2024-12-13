@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const validNames = ['test', 'test2', 'test3', 'test4']
+const validNames = ['test', 'xotiv', 'anckr', 'test4']
 
 export async function POST(req: Request) {
   try {
