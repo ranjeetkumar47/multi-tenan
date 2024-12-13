@@ -4,12 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Container from './ui/container'
 
 const Header = () => {
   return (
-    <div className="bg-gray-100 h-16 flex flex-row justify-between items-center px-20">
-      <div className="text-3xl text-red-600 font-bold">Logo</div>
-      <LoginComponent />
+    <div className="bg-gray-100 h-16 flex flex-row  items-center ">
+      <Container>
+        <div className="flex flex-row justify-between">
+          <div className="text-3xl text-red-600 font-bold">Logo</div>
+          <LoginComponent />
+        </div>
+      </Container>
     </div>
   )
 }
@@ -24,7 +29,7 @@ export function LoginComponent() {
     setError('')
     setLoading(true)
 
-    const body = { subdomain: organizationName }
+    const body = { subdomain: organizationName.toLowerCase() }
 
     try {
       const response = await fetch('/api/getSubdomain', {
