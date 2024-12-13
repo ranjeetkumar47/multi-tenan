@@ -6,6 +6,7 @@ export const config = {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone()
   const hostname = req.headers.get('host') || ''
@@ -20,7 +21,7 @@ export default async function middleware(req: NextRequest) {
     const response = await fetch(`${baseUrl}/api/getSubdomain`, { method: 'GET' })
     if (response.ok) {
       const data = await response.json()
-      subdomains = data.subdomains
+      subdomains = data?.data.map((item: { subdomain: any }) => item.subdomain)
     } else {
       console.error('Failed to fetch subdomains:', await response.text())
       return new Response('Internal Server Error', { status: 500 })
@@ -30,7 +31,7 @@ export default async function middleware(req: NextRequest) {
     return new Response('Internal Server Error', { status: 500 })
   }
 
-  if (isAllowedDomain && !subdomains.includes(subdomain)) {
+  if (isAllowedDomain && !subdomains?.includes(subdomain)) {
     return NextResponse.next()
   }
 

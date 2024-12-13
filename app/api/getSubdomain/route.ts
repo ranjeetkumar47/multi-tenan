@@ -1,30 +1,29 @@
-import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabaseClient'
+import { NextRequest, NextResponse } from 'next/server'
 
-const validNames = ['test', 'xotiv', 'anckr', 'test4']
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const subdomain = searchParams.get('subdomain')
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { subdomain } = body
+  if (subdomain) {
+    const { data, error } = await supabase.from('subdomain').select('*').eq('subdomain', subdomain).single()
 
-    if (!subdomain) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: 'Subdomain not found' }, { status: 404 })
+      }
+
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    if (!validNames.includes(subdomain)) {
-      return NextResponse.json({ error: `Name "${subdomain}" is not valid` }, { status: 400 })
+    return NextResponse.json({ data }, { status: 200 })
+  } else {
+    const { data, error } = await supabase.from('subdomain').select('*')
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ message: `Name is valid`, subdomain: subdomain }, { status: 200 })
-  } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 500 })
-  }
-}
-
-export async function GET() {
-  try {
-    return NextResponse.json({ subdomains: validNames }, { status: 200 })
-  } catch (error) {
-    return NextResponse.json({ error: 'Unable to fetch names' }, { status: 500 })
+    return NextResponse.json({ data }, { status: 200 })
   }
 }
